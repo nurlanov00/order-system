@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Учёт заказов</title>
+<style>
+body{font:16px/1.5 system-ui,sans-serif;max-width:960px;margin:0 auto;padding:1.25rem;color:#13202b;background:#f2f5f8}
+.stats{display:flex;gap:1rem;flex-wrap:wrap;margin:1rem 0}
+.stats div{background:#fff;border:1px solid #c9d3dd;border-radius:8px;padding:.6rem 1rem}
+.stats b{display:block;font-size:1.4rem}
+form.bar{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem}
+input,select,button{font:inherit;padding:.5rem;border:1px solid #c9d3dd;border-radius:6px}
+button{background:#1d5fc4;color:#fff;border-color:#1d5fc4;cursor:pointer}
+button.alt{background:#fff;color:#1d5fc4}button.del{background:#fff;color:#b3261e;border-color:#b3261e}
+.box{overflow-x:auto}table{width:100%;border-collapse:collapse;background:#fff;min-width:620px}
+th,td{text-align:left;padding:.5rem;border-bottom:1px solid #c9d3dd}
+td form{display:inline}
+</style>
+</head>
+<body>
+<h1>Учёт заказов</h1>
+<div class="stats">
+  <div><b>{{ stats.total }}</b>всего заказов</div>
+  <div><b>{{ stats.active }}</b>в обработке</div>
+  <div><b>{{ "{:,}".format(stats.money).replace(",", " ") }} ₸</b>общая сумма</div>
+</div>
+
+<form class="bar" method="post" action="{{ url_for('create') }}">
+  <input name="client" placeholder="Клиент" required maxlength="60">
+  <input name="item" placeholder="Товар или услуга" required maxlength="80">
+  <input name="amount" type="number" min="0" placeholder="Сумма, ₸" required>
+  <button>Добавить</button>
+</form>
+
+<form class="bar" method="get">
+  <input name="q" value="{{ q }}" placeholder="Поиск">
+  <select name="status">
+    <option value="">Все статусы</option>
+    {% for s in statuses %}<option {{ 'selected' if s == status }}>{{ s }}</option>{% endfor %}
+  </select>
+  <button class="alt">Найти</button>
+</form>
+
+<div class="box"><table>
+  <tr><th>№</th><th>Клиент</th><th>Товар</th><th>Сумма</th><th>Статус</th><th></th></tr>
+  {% for r in rows %}
+  <tr>
+    <td>#{{ r.id }}</td><td>{{ r.client }}</td><td>{{ r.item }}</td>
+    <td>{{ "{:,}".format(r.amount).replace(",", " ") }} ₸</td><td>{{ r.status }}</td>
+    <td>
+      <form method="post" action="{{ url_for('next_status', order_id=r.id) }}"><button class="alt">Сменить статус</button></form>
+      <form method="post" action="{{ url_for('delete', order_id=r.id) }}"><button class="del">Удалить</button></form>
+    </td>
+  </tr>
+  {% else %}
+  <tr><td colspan="6">Заказов нет. Добавьте первый в форме выше.</td></tr>
+  {% endfor %}
+</table></div>
+</body>
+</html>
